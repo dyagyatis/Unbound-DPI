@@ -1,0 +1,1 @@
+--dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fooling=ts --dpi-desync-badseq-increment=2 --dpi-desync-fake-tls="tls_clienthello_www_google_com.bin"

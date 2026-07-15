@@ -1,0 +1,1 @@
+--dpi-desync=fake,multisplit --dpi-desync-split-seqovl=664 --dpi-desync-split-pos=1 --dpi-desync-fooling=ts --dpi-desync-repeats=8 --dpi-desync-split-seqovl-pattern="tls_clienthello_max_ru.bin" --dpi-desync-fake-tls="stun.bin" --dpi-desync-fake-tls="tls_clienthello_max_ru.bin" --dpi-desync-fake-http="tls_clienthello_max_ru.bin"

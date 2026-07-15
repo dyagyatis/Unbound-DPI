@@ -1,0 +1,1 @@
+--dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fooling=ts --dpi-desync-fake-tls="stun.bin" --dpi-desync-fake-tls="tls_clienthello_max_ru.bin" --dpi-desync-fake-http="tls_clienthello_max_ru.bin"
