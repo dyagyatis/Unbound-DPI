@@ -1,117 +1,147 @@
 ﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks; // Для CS0103
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Net.NetworkInformation;
-using System.Drawing; // Для SystemIcons
+using System.Windows.Input;
+using System.Windows.Media.Animation;
 
 namespace Unbound
 {
     public partial class MainWindow : Window
     {
-        // 1. Исправлено объявление (добавлен '?')
-        private Process? _winwsProcess;
-        private System.Windows.Forms.NotifyIcon? _trayIcon;
+        private System.Windows.Forms.NotifyIcon _notifyIcon;
+        private bool _isClosingFromTray = false;
+
+        private readonly Dashboard _dashboardPage = new Dashboard();
+        private readonly Services _servicesPage = new Services();
+        private readonly Settings _settingsPage = new Settings();
+        private readonly About _aboutPage = new About();
 
         public MainWindow()
         {
             InitializeComponent();
-            LoadStrategies();
-            SetupTray();
-        }
 
-        private void SetupTray()
-        {
-            // Используем полные пути, чтобы не зависеть от конфликтов using
-            _trayIcon = new System.Windows.Forms.NotifyIcon();
-            _trayIcon.Icon = System.Drawing.SystemIcons.Application;
-            _trayIcon.Visible = true;
-            _trayIcon.Click += (s, e) => {
+            // Загружаем начальный экран
+            MainFrame.Navigate(_dashboardPage);
+
+            // Инициализация трея
+            _notifyIcon = new System.Windows.Forms.NotifyIcon();
+            _notifyIcon.Icon = System.Drawing.SystemIcons.Shield;
+            _notifyIcon.Text = "Unbound Hub";
+            _notifyIcon.Visible = true;
+
+            _notifyIcon.Click += (s, e) =>
+            {
                 this.Show();
                 this.WindowState = WindowState.Normal;
+                this.Activate();
             };
-        }
 
-        private void LoadStrategies()
-        {
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "strategies");
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-            StrategySelector.Items.Clear();
-            foreach (string file in Directory.GetFiles(path, "*.txt"))
+            var contextMenu = new System.Windows.Forms.ContextMenuStrip();
+            contextMenu.Items.Add("Открыть Хаб", null, (s, e) => { this.Show(); this.WindowState = WindowState.Normal; });
+            contextMenu.Items.Add("Полный выход", null, (s, e) =>
             {
-                StrategySelector.Items.Add(new ComboBoxItem
+                _isClosingFromTray = true;
+                DpiManager.Stop();
+                _notifyIcon.Dispose();
+                this.Close();
+            });
+            _notifyIcon.ContextMenuStrip = contextMenu;
+
+            // ФИСКАЛЬНЫЙ ШТРИХ: Проверяем аргументы командной строки при старте
+            string[] args = Environment.GetCommandLineArgs();
+            foreach (string arg in args)
+            {
+                if (arg.Equals("-tray", StringComparison.OrdinalIgnoreCase))
                 {
-                    Content = Path.GetFileNameWithoutExtension(file),
-                    Tag = File.ReadAllText(file).Trim()
-                });
-            }
-            if (StrategySelector.Items.Count > 0) StrategySelector.SelectedIndex = 0;
-        }
-
-        private void Log(string message)
-        {
-            string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "debug.log");
-            string logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}{Environment.NewLine}";
-            File.AppendAllText(logPath, logEntry);
-        }
-
-        // 2. Исправлены аргументы метода для совместимости с кнопками
-        private void StartButton_Click(object? sender, RoutedEventArgs e)
-        {
-            string strategy = (StrategySelector.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "";
-            string tcp = (GameTCP.IsChecked == true || GameAll.IsChecked == true) ? "1024-65535" : "12";
-            string udp = (GameAll.IsChecked == true) ? "1024-65535" : "12";
-            string args = $"--wf-tcp=80,443,2053,2083,2087,2096,8443,{tcp} --wf-udp=443,19294-19344,50000-50100,{udp} {strategy}";
-
-            KillWinwsProcesses();
-            _winwsProcess = new Process { StartInfo = { FileName = "winws.exe", Arguments = args, UseShellExecute = true, Verb = "runas", WindowStyle = ProcessWindowStyle.Hidden } };
-            _winwsProcess.Start();
-            StatusText.Text = "Статус: Запущено";
-        }
-
-        private void StopButton_Click(object? sender, RoutedEventArgs e) => KillWinwsProcesses();
-
-        private void KillWinwsProcesses()
-        {
-            foreach (var p in Process.GetProcessesByName("winws")) p.Kill();
-            StatusText.Text = "Статус: Остановлено";
-        }
-
-        private async void RunPingTest_Click(object sender, RoutedEventArgs e)
-        {
-            StatusText.Text = "Тестирование...";
-            foreach (ComboBoxItem item in StrategySelector.Items)
-            {
-                // Вызываем StartButton_Click с фиктивными параметрами
-                StartButton_Click(null, new RoutedEventArgs());
-                await Task.Delay(2000);
-                bool success = await Task.Run(() => new Ping().Send("8.8.8.8", 1000).Status == IPStatus.Success);
-                if (success) { StatusText.Text = $"Лучшая: {item.Content}"; return; }
-            }
-        }
-        private async Task CheckForUpdates()
-        {
-            try
-            {
-                using var client = new System.Net.Http.HttpClient();
-                string remoteVersion = await client.GetStringAsync("https://raw.githubusercontent.com/dyagyatis/Unbound-DPI/master/version.txt");
-                string localVersion = "1.0.0"; // Твоя текущая версия
-
-                if (remoteVersion.Trim() != localVersion)
-                {
-                    StatusText.Text = "Доступно обновление стратегий!";
+                    // Сворачиваем и скрываем окно в трей до его первой отрисовки
+                    this.WindowState = WindowState.Minimized;
+                    this.Hide();
+                    break;
                 }
             }
-            catch { /* Игнорируем, если нет интернета */ }
         }
 
-        protected override void OnStateChanged(EventArgs e)
+        private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (WindowState == WindowState.Minimized) this.Hide();
-            base.OnStateChanged(e);
+            if (e.ClickCount == 2)
+            {
+                ToggleMaximize();
+            }
+            else
+            {
+                if (this.WindowState == WindowState.Maximized)
+                {
+                    var mousePos = PointToScreen(e.GetPosition(this));
+                    this.Top = mousePos.Y - 15;
+                    this.WindowState = WindowState.Normal;
+                }
+                this.DragMove();
+            }
         }
+
+        private void BtnMinimize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void BtnMaximize_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleMaximize();
+        }
+
+        private void ToggleMaximize()
+        {
+            if (this.WindowState == WindowState.Maximized)
+            {
+                this.WindowState = WindowState.Normal;
+                BtnMaximize.Content = "▢";
+            }
+            else
+            {
+                this.WindowState = WindowState.Maximized;
+                BtnMaximize.Content = "❐";
+            }
+        }
+
+        private void BtnClose_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        private void MainFrame_Navigated(object sender, System.Windows.Navigation.NavigationEventArgs e)
+        {
+            if (GlobalState.IsAnimationEnabled)
+            {
+                DoubleAnimation fadeIn = new DoubleAnimation
+                {
+                    From = 0.0,
+                    To = 1.0,
+                    Duration = TimeSpan.FromMilliseconds(250),
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                };
+                MainFrame.BeginAnimation(Frame.OpacityProperty, fadeIn);
+            }
+            else
+            {
+                MainFrame.BeginAnimation(Frame.OpacityProperty, null);
+                MainFrame.Opacity = 1.0;
+            }
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            if (!_isClosingFromTray)
+            {
+                e.Cancel = true;
+                this.Hide();
+            }
+            base.OnClosing(e);
+        }
+
+        private void Nav_Main_Click(object sender, RoutedEventArgs e) => MainFrame.Navigate(_dashboardPage);
+        private void Nav_Services_Click(object sender, RoutedEventArgs e) => MainFrame.Navigate(_servicesPage);
+        private void Nav_Settings_Click(object sender, RoutedEventArgs e) => MainFrame.Navigate(_settingsPage);
+        private void Nav_About_Click(object sender, RoutedEventArgs e) => MainFrame.Navigate(_aboutPage);
     }
 }
