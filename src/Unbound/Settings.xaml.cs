@@ -10,8 +10,6 @@ namespace Unbound
     {
         private const string RegistryKeyPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
         private const string AppName = "UnboundDpiHub";
-
-        // Флаг, блокирующий автоматические срабатывания при создании страницы
         private bool _isInitialized = false;
 
         public Settings()
@@ -19,13 +17,9 @@ namespace Unbound
             InitializeComponent();
             CheckAutostartStatus();
 
-            // Восстанавливаем чекбокс анимации
             AnimationCheckBox.IsChecked = GlobalState.IsAnimationEnabled;
-
-            // Сначала устанавливаем выбранную тему в ComboBox на основе глобального состояния
             SetCurrentThemeInSelector();
 
-            // Только теперь, когда страница готова, разрешаем реагировать на клики пользователя
             _isInitialized = true;
         }
 
@@ -39,7 +33,6 @@ namespace Unbound
 
         private void SetCurrentThemeInSelector()
         {
-            // Временно отключаем флаг, чтобы принудительная установка индекса не вызвала событие
             _isInitialized = false;
 
             foreach (ComboBoxItem item in ThemeSelector.Items)
@@ -99,10 +92,19 @@ namespace Unbound
             }
         }
 
-        // ОБРАБОТЧИК СМЕНЫ ТЕМЫ С ЗАЩИТОЙ (ИСПРАВЛЕНО)
+        // ФИЧА 3: Вызовы создания и удаления фоновой службы Windows
+        private void InstallService_Click(object sender, RoutedEventArgs e)
+        {
+            DpiManager.InstallService();
+        }
+
+        private void UninstallService_Click(object sender, RoutedEventArgs e)
+        {
+            DpiManager.UninstallService();
+        }
+
         private void ThemeSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Если страница еще инициализируется — игнорируем событие
             if (!_isInitialized) return;
 
             if (ThemeSelector.SelectedItem is ComboBoxItem selectedItem && selectedItem.Tag != null)

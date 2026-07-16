@@ -7,8 +7,61 @@
             <TextBlock x:Name="StatusText" Text="Статус: Ожидание" Foreground="{DynamicResource TextColor}" HorizontalAlignment="Center" FontSize="16" Margin="0,15,0,2"/>
             <TextBlock x:Name="PingText" Text="Пинг до YouTube: --" Foreground="{DynamicResource SubTextColor}" HorizontalAlignment="Center" FontSize="13" Margin="0,0,0,15"/>
 
-            <Button Content="ЗАПУСК СИСТЕМЫ" Width="200" Height="40" Margin="0,10" Click="StartButton_Click" Background="#4CAF50" Foreground="White" BorderThickness="0" Cursor="Hand"/>
-            <Button Content="ОСТАНОВКА" Width="200" Height="40" Click="StopButton_Click" Background="#F44336" Foreground="White" BorderThickness="0" Cursor="Hand"/>
+            <StackPanel Margin="0,0,0,15" HorizontalAlignment="Center">
+                <TextBlock Text="Стратегия обхода (ALT-профиль):" Foreground="{DynamicResource TextColor}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                <ComboBox x:Name="StrategySelector" Width="220" Height="28" SelectionChanged="StrategySelector_SelectionChanged">
+                    <ComboBox.Resources>
+                        <Style TargetType="ScrollBar" BasedOn="{StaticResource {x:Type ScrollBar}}"/>
+                    </ComboBox.Resources>
+                    <ComboBoxItem Content="ALT (Fake + Fakedsplit)" Tag="ALT"/>
+                    <ComboBoxItem Content="ALT2 (Multisplit)" Tag="ALT2"/>
+                    <ComboBoxItem Content="ALT3 (Fake + Hostfakesplit)" Tag="ALT3"/>
+                    <ComboBoxItem Content="ALT4 (Fake + Multisplit BadSeq)" Tag="ALT4"/>
+                    <ComboBoxItem Content="ALT5 (Syndata + Multidisorder)" Tag="ALT5"/>
+                    <ComboBoxItem Content="ALT6 (Multisplit Pos1)" Tag="ALT6"/>
+                    <ComboBoxItem Content="ALT7 (Multisplit SNIExt)" Tag="ALT7"/>
+                    <ComboBoxItem Content="ALT8 (Fake BadSeq)" Tag="ALT8"/>
+                    <ComboBoxItem Content="ALT9 (Hostfakesplit)" Tag="ALT9"/>
+                    <ComboBoxItem Content="ALT10 (Fake STUN/TLS)" Tag="ALT10"/>
+                    <ComboBoxItem Content="ALT11 (Fake + Multisplit MD5, у автора работает)" Tag="ALT11"/>
+                    <ComboBoxItem Content="ALT12 (ALT11 Alternative)" Tag="ALT12"/>
+                    <ComboBoxItem Content="SimpleFake (QUIC)" Tag="SimpleFake"/>
+                    <ComboBoxItem Content="FakeTLSAuto (QUIC 11)" Tag="FakeTLSAuto"/>
+                    <ComboBoxItem Content="FakeTLSAutoAlt3 (Рекомендуемая, но вряд-ли)" Tag="FakeTLSAutoAlt3" IsSelected="True"/>
+                </ComboBox>
+            </StackPanel>
+
+            <Button Content="ЗАПУСК СИСТЕМЫ" Width="200" Height="40" Margin="0,10" Click="StartButton_Click" Background="#4CAF50" Foreground="White" BorderThickness="0" Cursor="Hand">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Button.Style>
+            </Button>
+
+            <Button Content="ОСТАНОВКА" Width="200" Height="40" Click="StopButton_Click" Background="#F44336" Foreground="White" BorderThickness="0" Cursor="Hand">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Button.Style>
+            </Button>
         </StackPanel>
     </Grid>
 </Page>

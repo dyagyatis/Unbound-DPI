@@ -10,81 +10,43 @@
         </Grid.RowDefinitions>
 
         <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
-            <ScrollViewer.Resources>
-                <Style TargetType="ScrollBar" BasedOn="{StaticResource {x:Type ScrollBar}}"/>
-            </ScrollViewer.Resources>
+            <StackPanel>
+                <Border Background="#1A1A1A" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" 
+                        CornerRadius="6" Padding="15" Margin="8,10,8,10" Width="430" HorizontalAlignment="Left">
+                    <StackPanel>
+                        <TextBlock Text="Telegram MTProto Прокси" Foreground="White" FontSize="14" FontWeight="Bold" Margin="0,0,0,10"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,4">
+                            <TextBlock Text="Порт:" Foreground="White" Width="150" VerticalAlignment="Center"/>
+                            <TextBox x:Name="TgPortTextBox" Text="1080" Width="70" Height="22" Background="#252525" Foreground="White" BorderThickness="0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,4">
+                            <TextBlock Text="Cloudflare Worker:" Foreground="White" Width="150" VerticalAlignment="Center"/>
+                            <TextBox x:Name="TgWorkerTextBox" Text="" Width="200" Height="22" Background="#252525" Foreground="White" BorderThickness="0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,15,0,0">
+                            <Button Content="Запустить" Width="140" Height="30" Margin="0,0,10,0" Click="StartTg_Click" Background="#4CAF50" Foreground="White" BorderThickness="0"/>
+                            <Button Content="Стоп" Width="140" Height="30" Click="StopTg_Click" Background="#555" Foreground="White" BorderThickness="0"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
 
-            <WrapPanel x:Name="ServiceGrid" HorizontalAlignment="Left"/>
+                <WrapPanel x:Name="ServiceGrid" HorizontalAlignment="Left"/>
+            </StackPanel>
         </ScrollViewer>
 
-        <Button Grid.Row="1" Content="Редактировать список сайтов (hostlist)" Width="280" Height="35" 
-                HorizontalAlignment="Left" Margin="8,15,0,5" Click="OpenEditor_Click"
-                Background="#ff9800" Foreground="Black" FontWeight="SemiBold" BorderThickness="0" Cursor="Hand">
-            <Button.Style>
-                <Style TargetType="Button">
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" CornerRadius="5">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </Button.Style>
-        </Button>
+        <Button Grid.Row="1" Content="Редактировать список сайтов" Width="280" Height="35" HorizontalAlignment="Left" Margin="8,15,0,5" Click="OpenEditor_Click" Background="#ff9800" Foreground="Black" FontWeight="SemiBold" BorderThickness="0"/>
 
         <Grid x:Name="EditorGrid" Grid.Row="2" Visibility="Collapsed" Margin="8,10,8,0" Height="180">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-
-            <Border Grid.Row="0" CornerRadius="6" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" Background="{DynamicResource CardBgColor}">
-                <TextBox x:Name="HostlistTextBox" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"
-                         Background="Transparent" 
-                         Foreground="{DynamicResource TextColor}" 
-                         BorderThickness="0" 
-                         FontFamily="Consolas" FontSize="12" Padding="8,8,15,8">
-                    <TextBox.Resources>
-                        <Style TargetType="ScrollBar" BasedOn="{StaticResource {x:Type ScrollBar}}"/>
-                    </TextBox.Resources>
-                </TextBox>
+            <Border Grid.Row="0" CornerRadius="6" BorderThickness="1" Background="#252525">
+                <TextBox x:Name="HostlistTextBox" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Background="Transparent" Foreground="White" BorderThickness="0" FontFamily="Consolas" Padding="8"/>
             </Border>
-
             <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-                <Button Content="Сохранить" Width="100" Height="30" Click="SaveEditor_Click" Background="#4CAF50" Foreground="White" BorderThickness="0" Margin="0,0,10,0" Cursor="Hand">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border Background="{TemplateBinding Background}" CornerRadius="4">
-                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </Button.Style>
-                </Button>
-
-                <Button Content="Отмена" Width="100" Height="30" Click="CloseEditor_Click" Background="#555" Foreground="White" BorderThickness="0" Cursor="Hand">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border Background="{TemplateBinding Background}" CornerRadius="4">
-                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </Button.Style>
-                </Button>
+                <Button Content="Сохранить" Width="100" Height="30" Click="SaveEditor_Click" Background="#4CAF50" Foreground="White" Margin="0,0,10,0"/>
+                <Button Content="Отмена" Width="100" Height="30" Click="CloseEditor_Click" Background="#555" Foreground="White"/>
             </StackPanel>
         </Grid>
     </Grid>

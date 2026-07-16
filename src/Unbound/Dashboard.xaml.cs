@@ -11,6 +11,7 @@ namespace Unbound
     {
         private DispatcherTimer _pingTimer;
         private Storyboard? _pulseStoryboard;
+        private bool _isInitialized = false;
 
         public Dashboard()
         {
@@ -22,71 +23,84 @@ namespace Unbound
             _pingTimer.Tick += PingTimer_Tick;
             _pingTimer.Start();
 
-            // Инициализируем анимацию пульсации
             InitPulseAnimation();
 
-            // Если при открытии вкладки служба уже запущена — включаем пульсацию
-            if (GlobalState.Status == "Статус: Запущено")
+            // Если система уже запущена (например, после автозапуска), включаем пульсацию
+            if (GlobalState.Status.Contains("Запущено"))
             {
                 StartPulse();
             }
+
+            foreach (ComboBoxItem item in StrategySelector.Items)
+            {
+                if (item.Tag?.ToString() == GlobalState.SelectedStrategy)
+                {
+                    item.IsSelected = true;
+                    break;
+                }
+            }
+            _isInitialized = true;
         }
 
         private void InitPulseAnimation()
         {
-            // Анимация изменения прозрачности от 1.0 до 0.4 и обратно
             DoubleAnimation pulseAnimation = new DoubleAnimation
             {
                 From = 1.0,
                 To = 0.4,
                 Duration = TimeSpan.FromSeconds(1.2),
-                AutoReverse = true, // Анимация идет обратно (затухание -> разгорание)
-                RepeatBehavior = RepeatBehavior.Forever // Бесконечный цикл
+                AutoReverse = true,
+                RepeatBehavior = RepeatBehavior.Forever
             };
-
             Storyboard.SetTarget(pulseAnimation, StatusText);
             Storyboard.SetTargetProperty(pulseAnimation, new PropertyPath(TextBlock.OpacityProperty));
-
             _pulseStoryboard = new Storyboard();
             _pulseStoryboard.Children.Add(pulseAnimation);
         }
 
         private void StartPulse()
         {
-            // Запускаем пульсацию только если включены анимации для мощных ПК
-            if (GlobalState.IsAnimationEnabled && _pulseStoryboard != null)
-            {
-                _pulseStoryboard.Begin();
-            }
+            if (GlobalState.IsAnimationEnabled && _pulseStoryboard != null) _pulseStoryboard.Begin();
         }
 
         private void StopPulse()
         {
-            if (_pulseStoryboard != null)
-            {
-                _pulseStoryboard.Stop();
-                StatusText.Opacity = 1.0; // Сбрасываем прозрачность в исходное состояние
-            }
+            if (_pulseStoryboard != null) { _pulseStoryboard.Stop(); StatusText.Opacity = 1.0; }
         }
-
+        // --- УНИВЕРСАЛЬНЫЙ ЗАПУСК в Dashboard.xaml.cs ---
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
+            // 1. Запуск Zapret
             DpiManager.Start();
-            StatusText.Text = GlobalState.Status;
 
-            if (GlobalState.Status == "Статус: Запущено")
-            {
-                StatusText.Foreground = System.Windows.Media.Brushes.LimeGreen;
-                StartPulse();
-            }
+            // 2. Запуск TG Proxy (передаем только 2 аргумента, как в твоем TgProxyManager)
+            // Ты можешь вынести настройки порта и воркера в настройки или брать их дефолтными
+            TgProxyManager.Start("1080", "");
+
+            StatusText.Text = "Статус: Запущено (DPI + TG Proxy)";
+            StatusText.Foreground = System.Windows.Media.Brushes.LimeGreen;
+            StartPulse();
         }
 
+        // --- УНИВЕРСАЛЬНАЯ ОСТАНОВКА ---
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
             DpiManager.Stop();
-            StatusText.Text = GlobalState.Status;
+            TgProxyManager.Stop();
+
+            StatusText.Text = "Статус: Остановлено";
             StatusText.Foreground = System.Windows.Media.Brushes.LightGray;
             StopPulse();
+        }
+
+        private void StrategySelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+            if (StrategySelector.SelectedItem is ComboBoxItem item && item.Tag != null)
+            {
+                GlobalState.SelectedStrategy = item.Tag.ToString()!;
+                if (GlobalState.Status.Contains("Запущено")) DpiManager.Start();
+            }
         }
 
         private async void PingTimer_Tick(object? sender, EventArgs e)
@@ -103,16 +117,12 @@ namespace Unbound
                     }
                     else
                     {
-                        PingText.Text = "Пинг до YouTube: Недоступен (Блокировка)";
+                        PingText.Text = "Пинг до YouTube: Ошибка сети";
                         PingText.Foreground = System.Windows.Media.Brushes.IndianRed;
                     }
                 }
             }
-            catch
-            {
-                PingText.Text = "Пинг до YouTube: Ошибка сети";
-                PingText.Foreground = System.Windows.Media.Brushes.Gray;
-            }
+            catch { PingText.Text = "Пинг до YouTube: Ошибка"; }
         }
     }
 }

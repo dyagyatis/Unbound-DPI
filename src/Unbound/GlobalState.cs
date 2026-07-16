@@ -13,5 +13,8 @@ namespace Unbound
         // НАСТРОЙКИ ВИЗУАЛА (НОВОЕ)
         public static string CurrentTheme { get; set; } = "Auto"; // "Dark", "Light", "Auto"
         public static bool IsAnimationEnabled { get; set; } = true;
+
+        public static string SelectedStrategy { get; set; } = "ALT11"; // Текущая выбранная стратегия
+        public static bool IsRunningAsService { get; set; } = false; // Запущено как служба или как процесс?
     }
 }

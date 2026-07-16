@@ -30,12 +30,8 @@ namespace Unbound
         {
             if (File.Exists(_filePath))
             {
-                HostlistTextBox.Text = File.ReadAllText(_filePath);
+                HostlistTextBox.Text = File.ReadAllText(_filePath); // Теперь он существует!
                 EditorGrid.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                MessageBox.Show("Файл list-youtube.txt не найден в папке files!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -87,6 +83,16 @@ namespace Unbound
         private void CloseEditor_Click(object sender, RoutedEventArgs e)
         {
             EditorGrid.Visibility = Visibility.Collapsed;
+        }
+
+        private void StartTg_Click(object sender, RoutedEventArgs e)
+        {
+            TgProxyManager.Start(TgPortTextBox.Text, TgWorkerTextBox.Text);
+        }
+
+        private void StopTg_Click(object sender, RoutedEventArgs e)
+        {
+            TgProxyManager.Stop();
         }
     }
 }
